@@ -141,10 +141,10 @@ Four artefacts per run are written to `EV_Data/`: `{basename}.csv`, `{basename}.
 | Column | Type | Nullable | Description / Format |
 |---|---|---|---|
 | `PCG_Number` | string | No | Primary identifier, e.g. `PCG 2024/1`, `Draft PCG 2023/D1`. |
-| `Document_Type` | string | No | `PCG` or `Draft PCG`. |
+| `Document_Type` | string | No | `Final PCG` (published guideline), `Draft PCG` (formal draft), `Compendium` (EC / Early Commentary consultation draft), or `Unknown` (unusual docid format). |
 | `Title` | string | Yes | Full document title. |
-| `Status` | string | Yes | e.g. `Current`, `Draft`. For draft PCGs this defaults to `Draft` when no explicit status field is present. |
-| `Date_of_Issue` | string | Yes | Date issued. Format: `D Month YYYY` or `YYYY-MM-DD`. Blank when not in document. |
+| `Status` | string | Yes | `Current` (default for all published PCGs), `Draft` (draft and EC consultation docs), or `Withdrawn`. `Current` is inferred when no withdrawal or draft indicators are found in the document text. |
+| `Date_of_Issue` | string | Yes | Date issued, extracted from the "Commissioner of Taxation [date]" sign-off paragraph at the end of each PCG. Format: `D Month YYYY`. Blank for EC (Early Commentary) consultation drafts (which have no Commissioner sign-off) and a small number of older PCGs without this footer. |
 | `Date_of_Effect` | string | Yes | Date from which the PCG has effect. Same date formats as `Date_of_Issue`. |
 | `Date_of_Withdrawal` | string | Yes | Date of withdrawal. Blank for current documents. |
 | `Replaces` | string | Yes | Identifier(s) of prior PCG(s) this document supersedes, pipe-separated. |
@@ -159,5 +159,89 @@ Four artefacts per run are written to `EV_Data/`: `{basename}.csv`, `{basename}.
 | `Other_Sections` | string | Yes | Content from any sections not covered by the named columns above, concatenated with ` \| ` between sections. |
 | `Compendium_Reference` | string | Yes | Compendium reference if present, e.g. `PCG 2024/1EC`. |
 | `Is_Archived` | boolean | No | `True` if the document carries an archival disclaimer; `False` otherwise. |
-| `Is_Draft` | boolean | No | `True` when `Document_Type` is `Draft PCG`; `False` otherwise. |
+| `Is_Draft` | boolean | No | `True` for `Draft PCG` and `Compendium` (EC / Early Commentary) doc types, and for any `PCG_Number` ending in `EC`; `False` for finalized PCGs. |
+| `Source_URL` | string | No | Full document URL. Resume key. |
+
+---
+
+## 5. Taxpayer Alerts
+
+**Output files:**
+- `EV_Data/taxpayer_alerts_all.csv`
+- `EV_Data/taxpayer_alerts_all.jsonl`
+- `EV_Data/taxpayer_alerts_all.zip`
+- `EV_Data/taxpayer_alerts_all_jsonl.zip`
+
+**Source URL pattern:** `https://www.ato.gov.au/law/view/document?docid=TPA/TA{year}{num}/NAT/ATO/00001`
+
+| Column | Type | Nullable | Description / Format |
+|---|---|---|---|
+| `Alert_Number` | string | No | Primary identifier, e.g. `TA 2026/1`. Parsed from H2 on the document page. |
+| `Title` | string | Yes | Full descriptive title of the alert, e.g. `Contrived property development arrangements…`. |
+| `Date_of_Issue` | string | Yes | Date the alert was issued. Verbatim from page metadata. Typical format: `D Month YYYY`. Blank when not present. |
+| `Status` | string | Yes | `Current` or `Withdrawn`. Derived from page header text. |
+| `Overview` | string | Yes | Paragraphs under the "Overview" heading, joined with ` \| `. |
+| `Description` | string | Yes | Paragraphs under the "Description" heading, joined with ` \| `. |
+| `Example` | string | Yes | Paragraphs under the "Example" heading, joined with ` \| `. Blank when no example is included. |
+| `Our_Concerns` | string | Yes | Paragraphs under the "Our concerns" heading. |
+| `What_ATO_Is_Doing` | string | Yes | Paragraphs under the "What we are doing" heading. |
+| `What_You_Should_Do` | string | Yes | Paragraphs under the "What you should do" heading. |
+| `Related_Documents` | string | Yes | Pipe-separated document and legislative references from inline links in the article body (e.g. `PS LA 2008/15 \| ITAA 1997 Div 70`). Nav links and self-references excluded. |
+| `Is_Withdrawn` | boolean | No | `True` if the alert appears in the "Withdrawn" sub-folder of the tree; `False` otherwise. |
+| `Source_URL` | string | No | Full document URL. Resume key. |
+
+---
+
+## 6. Decision Impact Statements
+
+**Output files:**
+- `EV_Data/decision_impact_statements_all.csv`
+- `EV_Data/decision_impact_statements_all.jsonl`
+- `EV_Data/decision_impact_statements_all.zip`
+- `EV_Data/decision_impact_statements_all_jsonl.zip`
+
+**Source URL pattern:** `https://www.ato.gov.au/law/view/document?docid=LIT/ICD/{court_ref}/00001`
+
+| Column | Type | Nullable | Description / Format |
+|---|---|---|---|
+| `Case_Name` | string | No | Full case citation, e.g. `Commissioner of Taxation v Bendel [2025] FCAFC 15`. Parsed from H2. |
+| `Venue_Reference_No` | string | Yes | Court file number, e.g. `VID 903 of 2023`. Parsed from `Venue Reference No:` label. |
+| `Venue` | string | Yes | Court or tribunal name, e.g. `Full Federal Court`. Parsed from `Venue:` label. |
+| `Judgment_Date` | string | Yes | Date of the judgment. Format: `D Month YYYY`. |
+| `Date_Published` | string | Yes | Date the DIS was published by the ATO. Parsed from the page title parenthetical `(Published DD Month YYYY)`. |
+| `Document_Type` | string | No | `Decision Impact Statement` or `Interim Decision Impact Statement`. |
+| `Summary_of_Decision` | string | Yes | Paragraphs under the "Summary of decision" heading, joined with ` \| `. |
+| `Overview_of_Facts` | string | Yes | Paragraphs under the "Overview of facts" heading, joined with ` \| `. |
+| `Issues_Decided` | string | Yes | All issue sub-sections concatenated: `Issue 1 – [topic]: [text] \| Issue 2 – [topic]: [text]`. |
+| `ATO_View_of_Decision` | string | Yes | The ATO's response — whether it accepts, appeals, or will update guidance. This is the critical field. |
+| `Administrative_Treatment` | string | Yes | Paragraphs under the "Administrative treatment" heading. |
+| `Related_Documents` | string | Yes | Pipe-separated document and legislative references from inline links (e.g. `TD 2022/11 \| PCG 2022/2`). |
+| `Is_Interim` | boolean | No | `True` if H1 is "Interim Decision Impact Statement"; `False` otherwise. |
+| `Source_URL` | string | No | Full document URL. Resume key. |
+
+---
+
+## 7. Law Administration Practice Statements
+
+**Output files:**
+- `EV_Data/law_admin_practice_statements_all.csv`
+- `EV_Data/law_admin_practice_statements_all.jsonl`
+- `EV_Data/law_admin_practice_statements_all.zip`
+- `EV_Data/law_admin_practice_statements_all_jsonl.zip`
+
+**Source URL pattern:** `https://www.ato.gov.au/law/view/document?docid=PSR/PS{year}{num}/NAT/ATO/00001` (regular); `DPS/DPSLA{year}{num}/NAT/ATO/00001` (draft)
+
+| Column | Type | Nullable | Description / Format |
+|---|---|---|---|
+| `Statement_Reference` | string | No | Primary identifier, e.g. `PS LA 2026/1`. Parsed from H2. |
+| `Title` | string | Yes | Subject line of the statement, e.g. `Self-managed superannuation funds — education directions…`. |
+| `Date_of_Issue` | string | Yes | Date issued. Format: `D Month YYYY`. Parsed from `Date of Issue:` metadata block. |
+| `Date_of_Effect` | string | Yes | Date from which the practice statement has effect. Same format as `Date_of_Issue`. |
+| `Document_Type` | string | No | `Law Administration Practice Statement`, `Draft Law Administration Practice Statement`, or `Law Administration Practice Statement (GA)`. |
+| `Has_Compendium` | boolean | No | `True` if the page references a compendium (e.g. `PS LA 2026/1EC`); `False` otherwise. |
+| `Body` | string | Yes | All numbered sections concatenated: `1. [Heading]: [text] \| 2. [Heading]: [text] \| … \| Appendix: [text]`. |
+| `Related_Documents` | string | Yes | Pipe-separated document and legislative references from inline links. |
+| `Legislative_References` | string | Yes | Legislative references from the `Legislative References:` metadata block at end of page, pipe-separated. |
+| `Is_Draft` | boolean | No | `True` when `Document_Type` starts with `Draft`; `False` otherwise. |
+| `Is_Withdrawn` | boolean | No | `True` if page header indicates the statement has been withdrawn; `False` otherwise. |
 | `Source_URL` | string | No | Full document URL. Resume key. |
