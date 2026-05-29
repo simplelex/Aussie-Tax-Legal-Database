@@ -1,6 +1,6 @@
 # Australian Taxation Office Legal Database — Machine-Readable
 
-**60,000+ ATO rulings, determinations, and private advice. Structured CSV + NDJSON. RAG-ready on day one.**
+**60,000+ ATO rulings, determinations, private advice, taxpayer alerts, and practice statements. Structured CSV + NDJSON. RAG-ready on day one.**
 
 The ATO Legal Database spans 15 years of Australian tax law — private advice, interpretative decisions, public rulings, and compliance guidelines. It's all public. It's all messy HTML. Getting it into a format an LLM can actually use takes weeks of data engineering.
 
@@ -43,6 +43,9 @@ Each dataset is published in two formats — pick whichever fits your pipeline.
 | ATO Interpretative Decisions | [ato_interpretative_decisions.zip](../../releases/download/latest-data/ato_interpretative_decisions.zip) | [ato_interpretative_decisions_jsonl.zip](../../releases/download/latest-data/ato_interpretative_decisions_jsonl.zip) |
 | Public Rulings & Determinations | [public_all.zip](../../releases/download/latest-data/public_all.zip) | [public_all_jsonl.zip](../../releases/download/latest-data/public_all_jsonl.zip) |
 | Practical Compliance Guidelines | [practical_compliance_guidelines.zip](../../releases/download/latest-data/practical_compliance_guidelines.zip) | [practical_compliance_guidelines_jsonl.zip](../../releases/download/latest-data/practical_compliance_guidelines_jsonl.zip) |
+| Taxpayer Alerts | [taxpayer_alerts_all.zip](../../releases/download/latest-data/taxpayer_alerts_all.zip) | [taxpayer_alerts_all_jsonl.zip](../../releases/download/latest-data/taxpayer_alerts_all_jsonl.zip) |
+| Decision Impact Statements | [decision_impact_statements_all.zip](../../releases/download/latest-data/decision_impact_statements_all.zip) | [decision_impact_statements_all_jsonl.zip](../../releases/download/latest-data/decision_impact_statements_all_jsonl.zip) |
+| Law Administration Practice Statements | [law_admin_practice_statements_all.zip](../../releases/download/latest-data/law_admin_practice_statements_all.zip) | [law_admin_practice_statements_all_jsonl.zip](../../releases/download/latest-data/law_admin_practice_statements_all_jsonl.zip) |
 
 Uncompressed copies of every CSV and `.jsonl` are also mirrored on HuggingFace at [`simplelex/Aussie-Tax-Legal-Database`](https://huggingface.co/datasets/simplelex/Aussie-Tax-Legal-Database) — useful for `load_dataset()` without unzipping.
 
@@ -54,11 +57,14 @@ Uncompressed copies of every CSV and `.jsonl` are also mirrored on HuggingFace a
 |---|---|---|---|
 | Edited Private Advice | Private rulings issued to individual taxpayers | ~50,000 | 2011–present |
 | ATO Interpretative Decisions | Binding ATO ID decisions | ~10,000 | All years |
-| Public Rulings & Determinations | TR, TD, GSTR, CR, GSTD + 22 other type codes | ~2,000 | All years |
-| Practical Compliance Guidelines | PCG, Draft PCG | ~200 | All years |
+| Public Rulings & Determinations | TR, TD, GSTR, CR, GSTD + 22 other type codes | ~5,500 | All years |
+| Practical Compliance Guidelines | PCG, Draft PCG, Early Commentary | ~110 | All years |
+| Taxpayer Alerts | Early warnings about tax avoidance schemes under investigation | ~150 | 2002–present |
+| Decision Impact Statements | ATO's official response to court decisions; acceptance/appeal status | ~555 | 2006–present |
+| Law Administration Practice Statements | Internal ATO guidance to officers on applying the law (PS LA) | ~500 | All years |
 
-**Total size:** ~400–500 MB uncompressed across all four datasets (per format).
-**Token estimate:** ~80–120 million tokens (at ~1,500–2,000 tokens/document average).
+**Total size:** ~400–600 MB uncompressed across all seven datasets (per format).
+**Token estimate:** ~80–130 million tokens (at ~1,500–2,000 tokens/document average).
 
 Each CSV zip contains a single UTF-8 CSV; each NDJSON zip contains a single `.jsonl` (one JSON object per line, same field names as the CSV columns). Files are updated automatically on weekdays when new ATO documents are detected.
 
@@ -95,6 +101,15 @@ Full column reference with types, nullability, and format notes: [`data_dictiona
 
 **Practical Compliance Guidelines** — 21 columns
 `PCG_Number` · `Document_Type` · `Title` · `Status` · `Date_of_Issue` · `Date_of_Effect` · `Date_of_Withdrawal` · `Replaces` · `Related_Rulings_and_Determinations` · `Legislative_References` · `Summary` · `Purpose_and_Scope` · `Background` · `Compliance_Approach` · `Examples` · `Appendices` · `Other_Sections` · `Compendium_Reference` · `Is_Archived` · `Is_Draft` · `Source_URL`
+
+**Taxpayer Alerts** — 13 columns
+`Alert_Number` · `Title` · `Date_of_Issue` · `Status` · `Overview` · `Description` · `Example` · `Our_Concerns` · `What_ATO_Is_Doing` · `What_You_Should_Do` · `Related_Documents` · `Is_Withdrawn` · `Source_URL`
+
+**Decision Impact Statements** — 14 columns
+`Case_Name` · `Venue_Reference_No` · `Venue` · `Judgment_Date` · `Date_Published` · `Document_Type` · `Summary_of_Decision` · `Overview_of_Facts` · `Issues_Decided` · `ATO_View_of_Decision` · `Administrative_Treatment` · `Related_Documents` · `Is_Interim` · `Source_URL`
+
+**Law Administration Practice Statements** — 12 columns
+`Statement_Reference` · `Title` · `Date_of_Issue` · `Date_of_Effect` · `Document_Type` · `Has_Compendium` · `Body` · `Related_Documents` · `Legislative_References` · `Is_Draft` · `Is_Withdrawn` · `Source_URL`
 
 ---
 
