@@ -1,10 +1,10 @@
 # Australian Taxation Office Legal Database — Machine-Readable
 
-**60,000+ ATO rulings, determinations, and private advice. Structured CSV. RAG-ready on day one.**
+**60,000+ ATO rulings, determinations, and private advice. Structured CSV + NDJSON. RAG-ready on day one.**
 
 The ATO Legal Database spans 15 years of Australian tax law — private advice, interpretative decisions, public rulings, and compliance guidelines. It's all public. It's all messy HTML. Getting it into a format an LLM can actually use takes weeks of data engineering.
 
-This dataset skips that. Every document is one CSV row. Every logical section is its own column. Source URLs included.
+This dataset skips that. Every document is one row — published in both CSV and NDJSON (JSON Lines). Every logical section is its own column / key. Source URLs included.
 
 ---
 
@@ -35,10 +35,16 @@ This dataset skips that. Every document is one CSV row. Every logical section is
 
 ## Direct download links
 
-- [edited_private_advice_all.zip](../../releases/download/latest-data/edited_private_advice_all.zip)
-- [ato_interpretative_decisions.zip](../../releases/download/latest-data/ato_interpretative_decisions.zip)
-- [public_all.zip](../../releases/download/latest-data/public_all.zip)
-- [practical_compliance_guidelines.zip](../../releases/download/latest-data/practical_compliance_guidelines.zip)
+Each dataset is published in two formats — pick whichever fits your pipeline.
+
+| Dataset | CSV | NDJSON (JSON Lines) |
+|---|---|---|
+| Edited Private Advice | [edited_private_advice_all.zip](../../releases/download/latest-data/edited_private_advice_all.zip) | [edited_private_advice_all_jsonl.zip](../../releases/download/latest-data/edited_private_advice_all_jsonl.zip) |
+| ATO Interpretative Decisions | [ato_interpretative_decisions.zip](../../releases/download/latest-data/ato_interpretative_decisions.zip) | [ato_interpretative_decisions_jsonl.zip](../../releases/download/latest-data/ato_interpretative_decisions_jsonl.zip) |
+| Public Rulings & Determinations | [public_all.zip](../../releases/download/latest-data/public_all.zip) | [public_all_jsonl.zip](../../releases/download/latest-data/public_all_jsonl.zip) |
+| Practical Compliance Guidelines | [practical_compliance_guidelines.zip](../../releases/download/latest-data/practical_compliance_guidelines.zip) | [practical_compliance_guidelines_jsonl.zip](../../releases/download/latest-data/practical_compliance_guidelines_jsonl.zip) |
+
+Uncompressed copies of every CSV and `.jsonl` are also mirrored on HuggingFace at [`simplelex/Aussie-Tax-Legal-Database`](https://huggingface.co/datasets/simplelex/Aussie-Tax-Legal-Database) — useful for `load_dataset()` without unzipping.
 
 ---
 
@@ -51,10 +57,10 @@ This dataset skips that. Every document is one CSV row. Every logical section is
 | Public Rulings & Determinations | TR, TD, GSTR, CR, GSTD + 22 other type codes | ~2,000 | All years |
 | Practical Compliance Guidelines | PCG, Draft PCG | ~200 | All years |
 
-**Total size:** ~400–500 MB uncompressed across all four datasets.
+**Total size:** ~400–500 MB uncompressed across all four datasets (per format).
 **Token estimate:** ~80–120 million tokens (at ~1,500–2,000 tokens/document average).
 
-Each zip contains a single UTF-8 CSV file. Files are updated automatically on weekdays when new ATO documents are detected.
+Each CSV zip contains a single UTF-8 CSV; each NDJSON zip contains a single `.jsonl` (one JSON object per line, same field names as the CSV columns). Files are updated automatically on weekdays when new ATO documents are detected.
 
 ---
 
@@ -94,12 +100,34 @@ Full column reference with types, nullability, and format notes: [`data_dictiona
 
 ## Quickstart
 
+CSV (smaller for spreadsheet tools, slower to parse in Python):
+
 ```python
 import pandas as pd
 
-# Load a dataset
 df = pd.read_csv("edited_private_advice_all.csv")
+```
 
+NDJSON / JSON Lines (streamable, native to HuggingFace `datasets`):
+
+```python
+import pandas as pd
+
+df = pd.read_json("edited_private_advice_all.jsonl", lines=True)
+```
+
+```python
+from datasets import load_dataset
+
+ds = load_dataset(
+    "simplelex/Aussie-Tax-Legal-Database",
+    data_files="edited_private_advice_all.jsonl",
+)
+```
+
+The JSON keys are identical to the CSV column names; pick whichever format your pipeline prefers.
+
+```python
 # Filter to current documents only
 active = df[df["Is_Archived"] == False]
 
