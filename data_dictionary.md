@@ -1,6 +1,6 @@
 # Data Dictionary — ATO Legal Database
 
-Data Target [ato.gov.au/law](https://www.ato.gov.au/law/view/), write UTF-8 CSV.
+Data Target [ato.gov.au/law](https://www.ato.gov.au/law/view/), write UTF-8 CSV and NDJSON (JSON Lines).
 
 ---
 
@@ -10,17 +10,22 @@ Data Target [ato.gov.au/law](https://www.ato.gov.au/law/view/), write UTF-8 CSV.
 |---|---|
 | **Delimiter** | ` \| ` (space-pipe-space) separates multiple values or sub-sections within a single cell |
 | **Empty values** | Empty string `""`, never `NULL` or `N/A` |
-| **Boolean columns** | Python `True` / `False` (written as-is by `csv.DictWriter`) |
+| **Boolean columns** | Python `True` / `False` (written as-is by `csv.DictWriter`; JSON booleans `true`/`false` in NDJSON) |
 | **Date strings** | Stored verbatim as scraped — no normalisation applied (see per-scraper notes) |
 | **Multi-value columns** | Values joined with ` \| ` — e.g. `ITAA 1936 s 6 \| ITAA 1997 s 995-1` |
 | **Encoding** | UTF-8, no BOM |
+| **Dual output** | Every scraper writes a `.csv` and a parallel `.jsonl` (NDJSON). JSON keys match CSV column names exactly; one JSON object per line. The NDJSON is the recommended format for `datasets.load_dataset()`. |
+| **Zip artefacts** | Each dataset produces four files: `<base>.csv`, `<base>.jsonl`, `<base>.zip` (CSV compressed), `<base>_jsonl.zip` (NDJSON compressed). Zips are refreshed only when new rows were written or the zip is older than its source. |
 
 ---
 
 ## 1. Edited Private Advice
 
 **Output files:**
-- `EV_Data/edited_private_advice_all.csv` (all years combined into one file) + `edited_private_advice_all.zip`
+- `EV_Data/edited_private_advice_all.csv` — all years combined into one file
+- `EV_Data/edited_private_advice_all.jsonl` — parallel NDJSON (one JSON object per row)
+- `EV_Data/edited_private_advice_all.zip` — CSV compressed
+- `EV_Data/edited_private_advice_all_jsonl.zip` — NDJSON compressed
 
 **Source URL pattern:** `https://www.ato.gov.au/law/view/document?docid=EV/{Authorisation_Number}`
 
@@ -42,7 +47,11 @@ Data Target [ato.gov.au/law](https://www.ato.gov.au/law/view/), write UTF-8 CSV.
 
 ## 2. ATO Interpretative Decisions
 
-**Output files:** `EV_Data/ato_interpretative_decisions.csv` + `ato_interpretative_decisions.zip`
+**Output files:**
+- `EV_Data/ato_interpretative_decisions.csv`
+- `EV_Data/ato_interpretative_decisions.jsonl`
+- `EV_Data/ato_interpretative_decisions.zip`
+- `EV_Data/ato_interpretative_decisions_jsonl.zip`
 
 **Source URL pattern:** `https://www.ato.gov.au/law/view/document?docid=AID/{auth_num}`
 
@@ -79,7 +88,7 @@ Data Target [ato.gov.au/law](https://www.ato.gov.au/law/view/), write UTF-8 CSV.
 | `--type TR` (a ruling code) | `public_rulings_TR` |
 | `--type TD` (a determination code) | `public_determinations_TD` |
 
-A single CSV per run is written to `EV_Data/{basename}.csv`, with a matching `{basename}.zip` refreshed alongside it.
+Four artefacts per run are written to `EV_Data/`: `{basename}.csv`, `{basename}.jsonl`, `{basename}.zip`, and `{basename}_jsonl.zip`.
 
 **Source URL pattern:** `https://www.ato.gov.au/law/view/document?docid={docid}`
 
@@ -113,13 +122,17 @@ A single CSV per run is written to `EV_Data/{basename}.csv`, with a matching `{b
 | `Subject_References` | string | Yes | Topical subject references, pipe-separated. |
 | `ATO_References` | string | Yes | ATO internal reference numbers, pipe-separated. |
 | `Is_Withdrawn` | boolean | No | `True` if the document has been formally withdrawn; `False` otherwise. |
-| `Source_URL` | string | No | Full document URL.
+| `Source_URL` | string | No | Full document URL. Resume key. |
 
 ---
 
 ## 4. Practical Compliance Guidelines
 
-**Output files:** `EV_Data/practical_compliance_guidelines.csv` + `practical_compliance_guidelines.zip`
+**Output files:**
+- `EV_Data/practical_compliance_guidelines.csv`
+- `EV_Data/practical_compliance_guidelines.jsonl`
+- `EV_Data/practical_compliance_guidelines.zip`
+- `EV_Data/practical_compliance_guidelines_jsonl.zip`
 
 **Source URL pattern:** `https://www.ato.gov.au/law/view/document?docid={docid}`
 
@@ -148,4 +161,3 @@ A single CSV per run is written to `EV_Data/{basename}.csv`, with a matching `{b
 | `Is_Archived` | boolean | No | `True` if the document carries an archival disclaimer; `False` otherwise. |
 | `Is_Draft` | boolean | No | `True` when `Document_Type` is `Draft PCG`; `False` otherwise. |
 | `Source_URL` | string | No | Full document URL. Resume key. |
-
